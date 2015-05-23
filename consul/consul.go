@@ -11,7 +11,8 @@ import (
 
 // Client struct maintains the consul client using the common interface
 type Client struct {
-	client *api.KV
+	kv    *api.KV
+	agent *api.Agent
 }
 
 // New returns a Client interface for use Consul as backend
@@ -50,15 +51,46 @@ func New(nodes []string, scheme, cert, key, caCert string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{client.KV()}, nil
-}
-
-// Watch waits until the refered key changes
-func Watch(key string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	return 0, nil
+	return &Client{kv: client.KV(), agent: client.Agent()}, nil
 }
 
 // Get pulls the value for the desired key from the backend
-func Get(key string) ([]byte, error) {
-	return []byte{}, nil
+func (c *Client) Get(key string) ([]byte, bool, error) {
+	pair, _, err := c.kv.Get(key, nil)
+	if err != nil {
+		return []byte{}, false, err
+	}
+	if pair != nil {
+		return pair.Value, true, nil
+	}
+	return []byte{}, false, nil
+}
+
+// Set writes the desired value into key on the backend
+func (c *Client) Set(key string, value []byte) error {
+	p := &api.KVPair{Key: key, Value: value}
+	_, err := c.kv.Put(p, nil)
+	return err
+}
+
+// Delete the desired key
+func (c *Client) Delete(key string) error {
+	_, err := c.kv.Delete(key, nil)
+	return err
+}
+
+// Watch waits until the refered key changes
+func (c *Client) Watch(key string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	return 0, nil
+}
+
+// ServiceRegister register the 'fwrules' service
+func (c *Client) ServiceRegister() error {
+	var service api.AgentServiceRegistration
+
+	service.ID = "fwrules"
+	service.Name = "fwrules"
+	service.Address = "127.0.0.1"
+
+	return c.agent.ServiceRegister(&service)
 }
