@@ -82,11 +82,11 @@ end
 def writeconf(filename, content)
   script = ""
   script = script + "sudo touch #{filename}\n"
-  script = script + "sudo echo "
+  script = script + "sudo echo \""
   content.split("\n").each do |line|
     script = script + "#{line}\n"
   end
-  script = script + " >> #{filename}"
+  script = script + "\" >> #{filename}"
   return script
 end
 
