@@ -79,6 +79,15 @@ SCRIPT
   return c
 end
 
+def writeconf(filename, content)
+  script = ""
+  script = script + "sudo touch #{filename}\n"
+  content.split("\n").each do |line|
+    script = script + "sudo echo #{line} >> #{filename}"
+  end
+  return script
+end
+
 def install_consul(type, domain, num)
   install_consul = <<SCRIPT
 echo Installing dependencies...
@@ -96,11 +105,11 @@ else
 fi
 echo Consul Configuration
 sudo mkdir -p /etc/consul.d
-sudo echo #{consul_conf(type, domain, num)} /etc/consul.d/config.json
+#{writeconf("/etc/consul.d/config.json", consul_conf(type, domain, num))}
 sudo chown root:root /etc/consul.d/*
 sudo chmod 644 /etc/consul.d/*
 echo Consul upstart Installation
-sudo echo #{consul_conf("upstart", domain)} /etc/init/consul.conf
+#{writeconf("/etc/init/consul.conf", consul_conf("upstart", domain))}
 sudo chown root:root /etc/init/consul.conf
 echo Consul Agent Start
 sudo service consul restart
