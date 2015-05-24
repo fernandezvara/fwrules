@@ -9,10 +9,10 @@ end
 
 def fake_dns(num_servers, num_nodes, domain)
   script = ""
-  num_servers.each do |i|
+  (1..num_servers).each do |i|
     script = script + "echo \"192.168.33.1#{i}  consul-#{i}.#{domain}\" >> /etc/hosts\n"
   end
-  num_nodes.each do |i|
+  (1..num_nodes).each do |i|
     script = script + "echo \"192.168.33.2#{i}  node-#{i}.#{domain}\" >> /etc/hosts\n"
   end
   return script
@@ -126,19 +126,14 @@ end
 end
 
 def motd(host, domain)
-
   motd = <<SCRIPT
-
 sudo apt-get install -y figlet
 figlet -f small fwrules > /etc/motd
 echo >> /etc/motd
 figlet -f small #{host} >> /etc/motd
 echo "\n\n#{host}.#{domain}" >> /etc/motd
-
 SCRIPT
-
 end
-
 
 
 Vagrant.configure(2) do |config|
