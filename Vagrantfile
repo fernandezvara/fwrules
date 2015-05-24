@@ -83,7 +83,7 @@ def writeconf(filename, content)
   script = ""
   script = script + "sudo touch #{filename}\n"
   content.split("\n").each do |line|
-    script = script + "sudo echo #{line} >> #{filename}"
+    script = script + "sudo echo \"#{line}\n\" >> #{filename}"
   end
   return script
 end
@@ -174,7 +174,6 @@ Vagrant.configure(2) do |config|
     config.vm.define h="node-#{id}" do |v|
       v.vm.box = "chef/debian-7.8"
       v.vm.network "private_network", ip: "192.168.33.#{20+id}"
-      v.vm.network "forwarded_port", guest: 49999, host: 48000 - id
       v.vm.hostname = "#{h}.#{domain}"
 
       v.vm.provider "virtualbox" do |vb|
