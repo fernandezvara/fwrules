@@ -158,9 +158,6 @@ Vagrant.configure(2) do |config|
       v.vm.provision "shell", inline: fake_dns(consul_servers, consul_nodes, domain)
       v.vm.provision "shell", inline: install_consul("server", domain, id)
       v.vm.provision "shell", inline: motd(h, domain)
-
-      v.vm.provision "shell", inline: $env_vars
-      v.vm.provision "shell", inline: $install_go
     end
   end
 
@@ -179,15 +176,6 @@ Vagrant.configure(2) do |config|
       v.vm.provision "shell", inline: fake_dns(consul_servers, consul_nodes, domain)
       v.vm.provision "shell", inline: install_consul("client", domain, id)
       v.vm.provision "shell", inline: motd(h, domain)
-
-      v.vm.provision "shell", inline: set_hostname(h, domain)
-      v.vm.provision "shell", inline: $fake_dns
-      v.vm.provision "shell", inline: $env_vars
-      v.vm.provision "shell", inline: install_consul("client")
-      v.vm.provision "shell", inline: $install_go
-      v.vm.provision "shell", inline: install_docker(h, domain)
-      v.vm.provision "shell", inline: $install_sxnode
-      v.vm.provision "shell", inline: pull_images(h, domain)
     end
   end
 
