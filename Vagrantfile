@@ -48,6 +48,33 @@ SCRIPT
   "start_join": ["consul-1.#{domain}"]
 }
 SCRIPT
+  when "upstart"
+    c = <<SCRIPT
+description "Consul agent"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+
+script
+  if [ -f "/etc/service/consul" ]; then
+    . /etc/service/consul
+  fi
+
+  # Make sure to use all our CPUs, because Consul can block a scheduler thread
+  export GOMAXPROCS=`nproc`
+
+  # Get the public IP
+  BIND=`ifconfig eth1 | grep "inet addr" | awk '{ print substr($2,6) }'`
+
+  exec /usr/bin/consul agent \
+    -config-dir="/etc/consul.d" \
+    -bind=$BIND \
+    ${CONSUL_FLAGS} \
+    >>/var/log/consul.log 2>&1
+end script
+SCRIPT
   end
   return c
 end
@@ -73,7 +100,7 @@ sudo echo #{consul_conf(type, domain, num)} /etc/consul.d/config.json
 sudo chown root:root /etc/consul.d/*
 sudo chmod 644 /etc/consul.d/*
 echo Consul upstart Installation
-sudo echo #{consul_conf(type, domain)} /etc/init/consul.conf
+sudo echo #{consul_conf("upstart", domain)} /etc/init/consul.conf
 sudo chown root:root /etc/init/consul.conf
 echo Consul Agent Start
 sudo service consul restart
@@ -111,6 +138,8 @@ echo "\n\n#{host}.#{domain}" >> /etc/motd
 SCRIPT
 
 end
+
+
 
 Vagrant.configure(2) do |config|
 
@@ -154,11 +183,11 @@ Vagrant.configure(2) do |config|
       v.vm.provision "shell", inline: set_hostname(h, domain)
       v.vm.provision "shell", inline: fake_dns(consul_servers, consul_nodes, domain)
       v.vm.provision "shell", inline: install_consul("client", domain, id)
+      v.vm.provision "shell", inline: motd(h, domain)
 
       v.vm.provision "shell", inline: set_hostname(h, domain)
       v.vm.provision "shell", inline: $fake_dns
       v.vm.provision "shell", inline: $env_vars
-      v.vm.provision "shell", inline: motd(h, domain)
       v.vm.provision "shell", inline: install_consul("client")
       v.vm.provision "shell", inline: $install_go
       v.vm.provision "shell", inline: install_docker(h, domain)
