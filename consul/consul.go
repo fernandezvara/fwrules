@@ -11,8 +11,10 @@ import (
 
 // Client struct maintains the consul client using the common interface
 type Client struct {
-	kv    *api.KV
-	agent *api.Agent
+	kv        *api.KV
+	agent     *api.Agent
+	catalog   *api.Catalog
+	waitIndex uint64
 }
 
 // New returns a Client interface for use Consul as backend
@@ -51,7 +53,11 @@ func New(nodes []string, scheme, cert, key, caCert string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{kv: client.KV(), agent: client.Agent()}, nil
+	return &Client{
+		kv:      client.KV(),
+		agent:   client.Agent(),
+		catalog: client.Catalog(),
+	}, nil
 }
 
 // Get pulls the value for the desired key from the backend
@@ -80,8 +86,14 @@ func (c *Client) Delete(key string) error {
 }
 
 // Watch waits until the refered key changes
-func (c *Client) Watch(key string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	return 0, nil
+func (c *Client) Watch(key string) error {
+	opts := api.QueryOptions{WaitIndex: c.waitIndex}
+
+	_, meta, err := c.kv.Get(key, &opts)
+	if err == nil {
+		c.waitIndex = meta.LastIndex
+	}
+	return err
 }
 
 // ServiceRegister register the 'fwrules' service
@@ -93,4 +105,15 @@ func (c *Client) ServiceRegister() error {
 	service.Address = "127.0.0.1"
 
 	return c.agent.ServiceRegister(&service)
+}
+
+// WatchServiceMembers watchs a service to get its changes
+func (c *Client) WatchServiceMembers() ([]*api.CatalogService, error) {
+	opts := api.QueryOptions{WaitIndex: c.waitIndex}
+
+	services, meta, err := c.catalog.Service("fwrules", "", &opts)
+	if err == nil {
+		c.waitIndex = meta.LastIndex
+	}
+	return services, err
 }
