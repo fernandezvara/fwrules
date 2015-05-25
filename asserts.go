@@ -26,3 +26,7 @@ func assertExit(msg string, err error, exitCode int) {
 		os.Exit(exitCode)
 	}
 }
+
+func logMsg(msg string) {
+	log.Println(msg)
+}

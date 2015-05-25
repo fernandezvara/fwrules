@@ -5,3 +5,5 @@ scheme = "http"
 cert = ""
 key = ""
 ca_cert = ""
+
+interfaces = ["eth0", "eth1", "en0", "lo0"]

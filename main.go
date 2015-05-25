@@ -8,7 +8,15 @@ import (
 
 const version = "0.0.1"
 
+var (
+	hostname string
+)
+
 func main() {
+
+	var err error
+	hostname, err = os.Hostname()
+	assertExit("Could not get the hostname", err, 3)
 
 	app := cli.NewApp()
 	app.Author = "sx team @ bq"
@@ -29,6 +37,18 @@ func main() {
 			Name:   "service",
 			Usage:  "runs the service that configures firewall on demand",
 			Action: fwrulesService,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "template",
+					Usage:  "firewall template for the machine",
+					EnvVar: "TEMPLATE",
+				},
+			},
+		},
+		{
+			Name:   "test",
+			Usage:  "show the network interfaces of the current machine",
+			Action: fwrulesTest,
 		},
 		{
 			Name:   "interfaces",

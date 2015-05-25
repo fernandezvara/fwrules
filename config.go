@@ -11,10 +11,12 @@ import (
 type Config struct {
 	Backend      string   `toml:"backend"`
 	BackendNodes []string `toml:"backend_nodes"`
+	Datacenter   string   `toml:"datacenter"`
 	Scheme       string   `toml:"scheme"`
 	Cert         string   `toml:"cert"`
 	Key          string   `toml:"key"`
 	CaCert       string   `toml:"ca_cert"`
+	Interfaces   []string `toml:"interfaces"`
 }
 
 func readConfig(fileName string) *Config {
