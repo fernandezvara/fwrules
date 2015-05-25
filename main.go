@@ -46,11 +46,6 @@ func main() {
 			},
 		},
 		{
-			Name:   "test",
-			Usage:  "show the network interfaces of the current machine",
-			Action: fwrulesTest,
-		},
-		{
 			Name:   "interfaces",
 			Usage:  "show the network interfaces of the current machine",
 			Action: fwrulesInterfaces,
