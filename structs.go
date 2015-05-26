@@ -7,6 +7,22 @@ import (
 	"strings"
 )
 
+func pathFor(t, n string) string {
+	return fmt.Sprintf("fwrules/%s/%s", t, n)
+}
+
+func pathMachine(name string) string {
+	return pathFor("machines", name)
+}
+
+func pathGroup(name string) string {
+	return pathFor("groups", name)
+}
+
+func pathTemplate(name string) string {
+	return pathFor("templates", name)
+}
+
 // Machine is the minimal data for any defined 'Server' to administer its firewall
 type Machine struct {
 	Name       string            `json:"name"`

@@ -12,10 +12,10 @@ import (
 
 // Client struct maintains the consul client
 type Client struct {
-	kv        *api.KV
-	agent     *api.Agent
-	catalog   *api.Catalog
-	waitIndex uint64
+	kv          *api.KV
+	agent       *api.Agent
+	catalog     *api.Catalog
+	waitIndexes map[string]uint64
 }
 
 // NewClient returns a Client to operate in Consul
@@ -52,9 +52,10 @@ func NewClient(config *Config) *Client {
 	client, err := api.NewClient(conf)
 	assertExit("Error connecting to Consul", err, 2)
 	return &Client{
-		kv:      client.KV(),
-		agent:   client.Agent(),
-		catalog: client.Catalog(),
+		kv:          client.KV(),
+		agent:       client.Agent(),
+		catalog:     client.Catalog(),
+		waitIndexes: make(map[string]uint64),
 	}
 }
 
@@ -99,11 +100,11 @@ func (c *Client) Delete(key string) error {
 
 // Watch waits until the refered key changes
 func (c *Client) Watch(key string) error {
-	opts := api.QueryOptions{WaitIndex: c.waitIndex}
+	opts := api.QueryOptions{WaitIndex: c.waitIndexes[key]}
 
 	_, meta, err := c.kv.Get(key, &opts)
 	if err == nil {
-		c.waitIndex = meta.LastIndex
+		c.waitIndexes[key] = meta.LastIndex
 	}
 	return err
 }
@@ -114,18 +115,17 @@ func (c *Client) ServiceRegister() error {
 
 	service.ID = "fwrules"
 	service.Name = "fwrules"
-	service.Address = "127.0.0.1"
 
 	return c.agent.ServiceRegister(&service)
 }
 
 // WatchServiceMembers watchs a service to get its changes
 func (c *Client) WatchServiceMembers() ([]*api.CatalogService, error) {
-	opts := api.QueryOptions{WaitIndex: c.waitIndex}
+	opts := api.QueryOptions{WaitIndex: c.waitIndexes["service"]}
 
 	services, meta, err := c.catalog.Service("fwrules", "", &opts)
 	if err == nil {
-		c.waitIndex = meta.LastIndex
+		c.waitIndexes["service"] = meta.LastIndex
 	}
 	return services, err
 }

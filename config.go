@@ -9,14 +9,15 @@ import (
 
 // Config contains the configuration to access the backend
 type Config struct {
-	Backend      string   `toml:"backend"`
-	BackendNodes []string `toml:"backend_nodes"`
-	Datacenter   string   `toml:"datacenter"`
-	Scheme       string   `toml:"scheme"`
-	Cert         string   `toml:"cert"`
-	Key          string   `toml:"key"`
-	CaCert       string   `toml:"ca_cert"`
-	Interfaces   []string `toml:"interfaces"`
+	Backend          string   `toml:"backend"`
+	BackendNodes     []string `toml:"backend_nodes"`
+	Datacenter       string   `toml:"datacenter"`
+	Scheme           string   `toml:"scheme"`
+	Cert             string   `toml:"cert"`
+	Key              string   `toml:"key"`
+	CaCert           string   `toml:"ca_cert"`
+	Interfaces       []string `toml:"interfaces"`
+	ServiceInterface string   `toml:"service_interface"`
 }
 
 func readConfig(fileName string) *Config {
