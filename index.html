@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>I have a back bone</title>
+</head>
+
+<body>
+  <div>
+    <ul>
+      <li><a href="#/list1">Lista1</a></li>
+      <li><a href="#/list2">Lista2</a></li>
+    </ul>
+  </div>
+  <div id="content"></div>
+  <script id="mytemplate" type="text/template">
+  	<b><%= name %></b>
+  </script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+  <script src="http://ajax.cdnjs.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
+  <script type="text/javascript">
+
+  var View1 = Backbone.View.extend({
+    el: $('#content'),
+    template: _.template($('#mytemplate').html()),
+    render: function() {
+      this.$el.html(this.template({name:'pepe'}));
+      return this;
+    }
+  });
+  var view1 = new View1();
+
+  var View2 = Backbone.View.extend({
+    el: $('#content'),
+    template: '<b>vista2</b>',
+    render: function() {
+      this.$el.html(this.template);
+      return this;
+    }
+  });
+  var view2 = new View2();
+
+  var AppRouter = Backbone.Router.extend({
+    routes: {
+      "list1": "list1", // matches http://example.com/#anything-here
+      "list1/:param": "list1", // matches http://example.com/#anything-here
+      "list2": "list2", // matches http://example.com/#anything-here
+      "*actions": "defaultRoute" // matches http://example.com/#anything-here
+    },
+    list1: function(param) {
+      param = param || '';
+      //alert('list1' + param);
+      view1.render();
+    },
+    list2: function() {
+      //alert('list2');
+      view2.render();
+    }
+  });
+
+  // Initiate the router
+  var app_router = new AppRouter();
+
+  //app_router.on('route:defaultRoute', function(actions) {
+  //alert(actions);
+  //});
+  //app_router.on('route:list1', function(actions) {
+  ////alert('list1');
+  //});
+  //app_router.on('route:list2', function(actions) {
+  ////alert('list2');
+  //});
+
+  // Start Backbone history a necessary step for bookmarkable URL's
+  Backbone.history.start();
+
+    </script>
+  </body>
+
+  </html>
+
+  </script>
+</body>
+
+</html>

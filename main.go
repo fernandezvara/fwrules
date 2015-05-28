@@ -71,6 +71,19 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:   "webadmin",
+			Usage:  "starts the webadmin panel",
+			Action: fwrulesWebAdmin,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "port",
+					Usage:  "port to show the web admin panel",
+					Value:  "3000",
+					EnvVar: "FW_ADMIN_PORT",
+				},
+			},
+		},
 	}
 	app.Run(os.Args)
 }
