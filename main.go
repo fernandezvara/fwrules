@@ -37,13 +37,6 @@ func main() {
 			Name:   "service",
 			Usage:  "runs the service that configures firewall on demand",
 			Action: fwrulesService,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:   "template",
-					Usage:  "firewall template for the machine",
-					EnvVar: "TEMPLATE",
-				},
-			},
 		},
 		{
 			Name:   "interfaces",
@@ -76,6 +69,12 @@ func main() {
 			Usage:  "starts the webadmin panel",
 			Action: fwrulesWebAdmin,
 			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "ip",
+					Usage:  "ip to expose the web admin",
+					Value:  "127.0.0.1",
+					EnvVar: "FW_ADMIN_IP",
+				},
 				cli.StringFlag{
 					Name:   "port",
 					Usage:  "port to show the web admin panel",

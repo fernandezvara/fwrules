@@ -3,44 +3,26 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
+	"os"
 	"strings"
+	"sync"
+
+	"github.com/codegangsta/cli"
 )
-
-func pathFor(t, n string) string {
-	return fmt.Sprintf("fwrules/%s/%s", t, n)
-}
-
-func pathMachine(name string) string {
-	return pathFor("machines", name)
-}
-
-func pathGroup(name string) string {
-	return pathFor("groups", name)
-}
-
-func pathTemplate(name string) string {
-	return pathFor("templates", name)
-}
 
 // Machine is the minimal data for any defined 'Server' to administer its firewall
 type Machine struct {
 	Name       string            `json:"name"`
 	Interfaces map[string]string `json:"interfaces,omitempty"`
-	Template   string            `json:"template"`
-	Groups     []string          `json:"groups"`
+	RuleSet    string            `json:"ruleset"`
 }
 
-func isIPV4(ip string) bool {
-	if strings.Contains(ip, ".") {
-		return true
+func newMachine() *Machine {
+	return &Machine{
+		Interfaces: make(map[string]string),
 	}
-	return false
-}
-
-func newMachine() (m Machine) {
-	m.Interfaces = make(map[string]string)
-	return
 }
 
 func (m *Machine) getInterfaces(configInterfaces []string) {
@@ -68,40 +50,13 @@ func (m *Machine) toByte() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (m *Machine) kvPath() string {
-	return fmt.Sprintf("fwrules/machines/%s", m.Name)
-}
-
-// Template is the minimal configuration passed to the service.
-// Since a template can contain n configuration groups, its used to minimize
+// RuleSet is the minimal configuration passed to the service.
+// Since a ruleset can contain n configuration groups, its used to minimize
 // the configuration on the client side
-type Template struct {
-	Name   string   `json:"name"`
-	Groups []string `json:"groups"`
-}
-
-func (t *Template) kvPath() string {
-	return fmt.Sprintf("fwrules/templates/%s", t.Name)
-}
-
-// Group have the required configuration as rules for the machines in
-type Group struct {
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	Rules       map[string]*Rule `json:"rules"`
-}
-
-func newGroup() (g Group) {
-	g.Rules = make(map[string]*Rule)
-	return
-}
-
-func (g *Group) kvPath() string {
-	return fmt.Sprintf("fwrules/groups/%s", g.Name)
-}
-
-func (g *Group) toByte() ([]byte, error) {
-	return json.Marshal(g)
+type RuleSet struct {
+	Name        string  `json:"name" binding:"required"`
+	Description string  `json:"description"`
+	Rules       []*Rule `json:"rules"`
 }
 
 // Rule is the definition of a IPtables rule
@@ -112,4 +67,116 @@ type Rule struct {
 	PortEnd     uint8  `json:"port_end"`
 	From        string `json:"from"`
 	Protocol    string `json:"protocol"`
+}
+
+func pathMachine(fwid, name string) string {
+	return pathFor(fwid, "machines", name)
+}
+
+func pathRuleSet(fwid, name string) string {
+	return pathFor(fwid, "rulesets", name)
+}
+
+func pathFor(fwid, t, n string) string {
+	return fmt.Sprintf("fwrules/%s/%s/%s", fwid, t, n)
+}
+
+// service is the main struct with all information needed to maintain the
+// configuration
+type service struct {
+	sync.Mutex
+	cli        *cli.Context
+	client     *Client
+	config     *Config
+	ruleset    *RuleSet
+	machine    *Machine
+	neighbours []string
+}
+
+func (s *service) serviceRegister() error {
+	return s.client.ServiceRegister(fmt.Sprintf("fwrules-%s", s.config.FWID))
+}
+
+func (s *service) readAndWatchRuleSet() {
+	var (
+		exists bool
+		err    error
+	)
+
+	for {
+		err = s.client.Watch(pathRuleSet(s.config.FWID, s.config.RuleSet))
+		if err == nil {
+			log.Println("firewall configuration ruleset updated...")
+		}
+		exists, err = s.client.GetInterface(pathRuleSet(s.config.FWID, s.config.RuleSet), &s.ruleset)
+		assertExit("Error marshalling ruleset data", err, 3)
+		if exists == false {
+			logMsg("RuleSet does not exists on Consul")
+			os.Exit(3)
+		}
+		s.update()
+	}
+}
+
+func (s *service) readAndWatchMachine() {
+	var (
+		exists bool
+		err    error
+	)
+
+	for {
+		err = s.client.Watch(pathRuleSet(s.config.FWID, s.config.RuleSet))
+		if err == nil {
+			log.Println("machine configuration updated...")
+		}
+		exists, err = s.client.GetInterface(pathMachine(s.config.FWID, hostname), &s.machine)
+		assertExit("Error marshalling machine data", err, 3)
+		if exists == false {
+			logMsg("Machine does not exists on Consul")
+			os.Exit(3)
+		}
+		s.update()
+	}
+}
+
+func (s *service) machineRegister() {
+	// registers machine on Consul
+	var (
+		b   []byte
+		err error
+	)
+	s.machine = newMachine()
+	s.machine.Name = hostname
+	s.machine.RuleSet = s.config.RuleSet
+	s.machine.getInterfaces(s.config.Interfaces)
+	b, err = s.machine.toByte()
+	assertExit("Error marshalling machine data", err, 3)
+	s.client.Set(pathMachine(s.config.FWID, hostname), b)
+}
+
+func (s *service) neighboursMonitor() {
+	for {
+		services, err := s.client.WatchServiceMembers(fmt.Sprintf("fwrules-%s", s.config.FWID))
+		assert(err)
+		s.Lock()
+		s.neighbours = []string{}
+		for _, service := range services {
+			log.Println("Neighbour:", service.Address)
+			s.neighbours = append(s.neighbours, service.Address)
+		}
+		s.Unlock()
+		s.update()
+	}
+}
+
+func (s *service) update() {
+	s.Lock()
+	fmt.Println("------------------------------------------------------------")
+	for _, n := range s.neighbours {
+		fmt.Printf("-A INPUT -s %s/32 -j ACCEPT\n", n)
+	}
+	fmt.Println("------------------------------------------------------------")
+	log.Println("Call for update")
+	log.Println(s)
+	s.Unlock()
 }

@@ -1,60 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>I have a back bone</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fwrules</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <!-- Optional theme
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css"> -->
+
 </head>
 
-<body>
-  <div>
-    <ul>
-      <li><a href="#/list1">Lista1</a></li>
-      <li><a href="#/list2">Lista2</a></li>
-    </ul>
+<body role="document" style="padding-top: 70px">
+
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">fwrules</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="#/servers">Servers</a></li>
+          <li><a href="#/rulesets">Rule Sets</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
+  <div class="container" id="main" role="main">
   </div>
-  <div id="content"></div>
-  <script id="mytemplate" type="text/template">
-  	<b><%= name %></b>
+
+  <script id="servers-main" type="text/template">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Rule Set</th>
+                <th>Interfaces & IPs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><%= name %></td>
+                <td><%= name %></td>
+                <td><span class="label label-success">eth0</span> 10.10.10.10 <span class="label label-success">eth1</span> 123.123.123.123</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Jacob</td>
+                <td>Thornton</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Larry</td>
+                <td>the Bird</td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
   </script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
   <script src="http://ajax.cdnjs.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
   <script type="text/javascript">
 
-  var View1 = Backbone.View.extend({
-    el: $('#content'),
-    template: _.template($('#mytemplate').html()),
+  var Servers = Backbone.View.extend({
+    el: $('#main'),
+    template: _.template($('#servers-main').html()),
     render: function() {
       this.$el.html(this.template({name:'pepe'}));
       return this;
     }
   });
-  var view1 = new View1();
+  var servers = new Servers();
 
-  var View2 = Backbone.View.extend({
-    el: $('#content'),
-    template: '<b>vista2</b>',
+  var Rulesets = Backbone.View.extend({
+    el: $('#main'),
+    template: '<b>rulesets</b>',
     render: function() {
       this.$el.html(this.template);
       return this;
     }
   });
-  var view2 = new View2();
+  var rulesets = new Rulesets();
 
   var AppRouter = Backbone.Router.extend({
     routes: {
-      "list1": "list1", // matches http://example.com/#anything-here
-      "list1/:param": "list1", // matches http://example.com/#anything-here
-      "list2": "list2", // matches http://example.com/#anything-here
-      "*actions": "defaultRoute" // matches http://example.com/#anything-here
+      "servers": "servers",
+      "rulesets": "rulesets",
+      "list2": "list2",
+      "*actions": "defaultRoute"
     },
-    list1: function(param) {
+    servers: function(param) {
       param = param || '';
       //alert('list1' + param);
-      view1.render();
+      servers.render();
     },
-    list2: function() {
+    rulesets: function() {
       //alert('list2');
-      view2.render();
+      rulesets.render();
     }
   });
 
@@ -74,12 +132,16 @@
   // Start Backbone history a necessary step for bookmarkable URL's
   Backbone.history.start();
 
-    </script>
-  </body>
-
-  </html>
-
   </script>
 </body>
 
 </html>
+
+
+      <!-- <h1>Hello!</h1>
+      <div>
+        <ul>
+          <li><a href="#/list1">Lista1</a></li>
+          <li><a href="#/list2">Lista2</a></li>
+        </ul>
+      </div> -->

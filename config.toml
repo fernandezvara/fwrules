@@ -1,5 +1,5 @@
+fw_id = "test"
 
-backend = "consul"
 backend_nodes = ["localhost:8500"]
 datacenter = "dc1"
 scheme = "http"
@@ -10,4 +10,4 @@ ca_cert = ""
 interfaces = ["eth0", "eth1", "en0", "lo0"]
 service_interface = "en0"
 
-template = "template1"
+ruleset = "template1"

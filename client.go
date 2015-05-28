@@ -85,6 +85,12 @@ func (c *Client) GetInterface(key string, obj interface{}) (bool, error) {
 	return false, nil
 }
 
+// List returns all keypair inside a path
+func (c *Client) List(key string) (api.KVPairs, *api.QueryMeta, error) {
+	opts := &api.QueryOptions{}
+	return c.kv.List(key, opts)
+}
+
 // Set writes the desired value into key on the backend
 func (c *Client) Set(key string, value []byte) error {
 	p := &api.KVPair{Key: key, Value: value}
@@ -110,20 +116,20 @@ func (c *Client) Watch(key string) error {
 }
 
 // ServiceRegister register the 'fwrules' service
-func (c *Client) ServiceRegister() error {
+func (c *Client) ServiceRegister(name string) error {
 	var service api.AgentServiceRegistration
 
-	service.ID = "fwrules"
-	service.Name = "fwrules"
+	service.ID = name
+	service.Name = name
 
 	return c.agent.ServiceRegister(&service)
 }
 
 // WatchServiceMembers watchs a service to get its changes
-func (c *Client) WatchServiceMembers() ([]*api.CatalogService, error) {
+func (c *Client) WatchServiceMembers(name string) ([]*api.CatalogService, error) {
 	opts := api.QueryOptions{WaitIndex: c.waitIndexes["service"]}
 
-	services, meta, err := c.catalog.Service("fwrules", "", &opts)
+	services, meta, err := c.catalog.Service(name, "", &opts)
 	if err == nil {
 		c.waitIndexes["service"] = meta.LastIndex
 	}
