@@ -151,7 +151,7 @@ func (s *service) machineRegister() {
 	s.machine.getInterfaces(s.config.Interfaces)
 	b, err = s.machine.toByte()
 	assertExit("Error marshalling machine data", err, 3)
-	s.client.Set(pathMachine(s.config.FWID, hostname), b)
+	assert(s.client.Set(pathMachine(s.config.FWID, hostname), b))
 }
 
 func (s *service) neighboursMonitor() {
