@@ -1,0 +1,11 @@
+<div class="row">
+  <div class="col-md-2">
+    <ul id="selector">
+      <li ng-repeat="ruleset in allRulesets" ui-sref-active="active">
+        <a href ui-sref="rulesets.detail({name: ruleset.name})"> {{ruleset.name}}</a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-md-10" ui-view="detail">
+  </div>
+</div>

@@ -1,0 +1,38 @@
+div.rulesets {
+  padding: 0;
+  border-right-color: #ddd;
+  border-right-width: 1px;
+  border-right-style: solid;
+}
+
+div.rules {
+  padding:0;
+}
+
+ul#selector {
+  width: 100%;
+  padding: 0;
+  border-top-color: #eee;
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+ul#selector li {
+  list-style: none;
+  padding: 14px 20px 14px 2px;
+  border-bottom-color: #eee;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+ul#selector li:hover {
+  background-color: #ccc;
+}
+
+ul#selector li.active {
+  background-color: #eee;
+}
+
+ul#selector li a {
+  margin-left: 10px;
+}
