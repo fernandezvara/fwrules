@@ -1,3 +1,16 @@
+body {
+  padding-top: 70px;
+}
+
+ul#selector li.active a {
+  color:#fff;
+}
+
+div.ruleset-title h3.panel-title {
+  color:#fff;
+}
+
+/*
 div.rulesets {
   padding: 0;
   border-right-color: #ddd;
@@ -8,7 +21,6 @@ div.rulesets {
 div.rules {
   padding:0;
 }
-
 ul#selector {
   width: 100%;
   padding: 0;
@@ -35,4 +47,4 @@ ul#selector li.active {
 
 ul#selector li a {
   margin-left: 10px;
-}
+}*/

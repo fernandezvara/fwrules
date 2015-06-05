@@ -5,13 +5,13 @@
         <tr>
           <th>Name</th>
           <th>Rule Set</th>
-          <th>Interfaces & IPs</th>
+          <th>Interfaces &amp; IPs</th>
         </tr>
       </thead>
-      <tbody ng-controller="ServersController as serversCtrl">
+      <tbody>
         <tr ng-repeat="server in allServers">
           <td>{{server.name}}</td>
-          <td>{{server.ruleset}}</td>
+          <td><a href ui-sref="rulesets.detail({name: server.ruleset})">{{server.ruleset}}</td>
           <td>
             <span ng-repeat="(interface, ip) in server.interfaces">
               <span class="label label-success">{{interface}}</span> {{ip}}

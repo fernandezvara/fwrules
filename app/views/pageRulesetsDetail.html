@@ -1,6 +1,12 @@
-<h2>{{ruleset.$object.name}}</h2>
-<h4>Description</h4>
-<p>{{ruleset.$object.description}}</p>
-<div class="row">
+<div class="panel panel-primary ruleset-title">
+  <div class="panel-heading">
+    <div class="btn-group pull-right">
+      <a href="#" class="btn btn-danger btn-xs" confirmed-click="removeModal()" ng-confirm-click="Are sure you want to remove this rule set?">remove</a>
+    </div>
+    <h3 class="panel-title">{{ruleset.name}}</h3>
+  </div>
+  <div class="panel-body">
+    <p editable-textarea="ruleset.description" e-rows="3" e-cols="80" onaftersave="updateRuleset()">{{ ruleset.description || 'no description' }}</p>
+  </div>
 </div>
 <pre>{{ruleset}}</pre>

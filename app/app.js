@@ -1,5 +1,10 @@
 (function() {
-  var app = angular.module('fwrules', ['ui.router', 'restangular']);
+  var app = angular.module('fwrules', [
+    'ui.router',
+    'ngResource',
+    'ui.bootstrap',
+    'xeditable'
+  ]);
 
   app.directive('mainMenu', function() {
     return {
@@ -17,7 +22,48 @@
     ]
   );
 
-  app.config(function($stateProvider, $urlRouterProvider, RestangularProvider) {
+  app.factory('Servers', function($resource) {
+    return $resource('/api/test/machines/:id');
+  });
+
+  app.factory('RuleSets', function($resource) {
+    return $resource('/api/test/rulesets/:name', {}, {
+      query: {
+        method: 'GET',
+        params: {
+          name: ''
+        },
+        isArray: true
+      },
+      get: {
+        method: 'GET',
+        params: {
+          name: '@name'
+        }
+      },
+      post: {
+        method: 'POST'
+      },
+      update: {
+        method: 'PUT',
+        params: {
+          name: '@name'
+        }
+      },
+      remove: {
+        method: 'DELETE',
+        params: {
+          name: '@name'
+        }
+      }
+    });
+  });
+
+  app.run(function(editableOptions) {
+    editableOptions.theme = 'bs3';
+  });
+
+  app.config(function($stateProvider, $urlRouterProvider) {
     $urlRouterProvider.otherwise("/");
 
     $stateProvider
@@ -27,17 +73,22 @@
       })
       .state('servers', {
         url: '/servers',
-        templateUrl: 'app/views/pageServers.html'
+        templateUrl: 'app/views/pageServers.html',
+        controller: ['$scope', 'Servers',
+          function($scope, Servers) {
+            Servers.query(function(data) {
+              $scope.allServers = data;
+            });
+          }
+        ]
       })
       .state('rulesets', {
         url: '/rulesets',
         templateUrl: 'app/views/pageRulesets.html',
-        controller: ['$scope', 'Restangular',
-          function($scope, Restangular) {
-            var apiRulesets = Restangular.all('rulesets');
-
-            apiRulesets.getList().then(function(rulesets) {
-              $scope.allRulesets = rulesets;
+        controller: ['$scope', 'RuleSets',
+          function($scope, RuleSets) {
+            RuleSets.query(function(data) {
+              $scope.allRulesets = data;
             });
           }
         ]
@@ -46,43 +97,50 @@
         url: '/{name}',
         views: {
           'detail': {
-            controller: ['$scope', '$stateParams', 'Restangular',
-              function($scope, $stateParams, Restangular) {
-                $scope.ruleset = Restangular.one('rulesets',
-                  $stateParams.name).get();
+            controller: ['$scope', '$state', '$stateParams', 'RuleSets',
+              '$modal',
+              function($scope, $state, $stateParams, RuleSets, $modal) {
+                RuleSets.get({
+                  name: $stateParams.name
+                }, function(data) {
+                  $scope.ruleset = data;
+                });
 
-                //utils.findById($scope.allRulesets,
-                //  $stateParams.name);
+                $scope.updateRuleset = function() {
+                  RuleSets.update($scope.ruleset);
+                  console.log('updated!');
+                };
+
+                $scope.removeModal = function() {
+                  RuleSets.delete({
+                    name: $scope.ruleset.name
+                  });
+                  $state.go('^');
+                  console.log('user said true');
+                };
               }
             ],
             templateUrl: 'app/views/pageRulesetsDetail.html'
           }
         }
       });
-
-    RestangularProvider.setBaseUrl("/api/test");
-    RestangularProvider
-      .setRestangularFields({
-        id: 'name'
-      });
   });
 
-  app.controller('ServersController', function($scope, Restangular) {
-    var apiServers = Restangular.all('machines');
-
-    apiServers.getList().then(function(servers) {
-      $scope.allServers = servers;
-    });
-  });
-
-  // app.controller('RuleSetsController', function($scope, Restangular) {
-  //   var apiRulesets = Restangular.all('rulesets');
-  //
-  //   apiRulesets.getList().then(function(rulesets) {
-  //     $scope.allRulesets = rulesets;
-  //   });
-  //
-  // });
+  app.directive('ngConfirmClick', [
+    function() {
+      return {
+        link: function(scope, element, attr) {
+          var msg = attr.ngConfirmClick || "Are you sure?";
+          var clickAction = attr.confirmedClick;
+          element.bind('click', function(event) {
+            if (window.confirm(msg)) {
+              scope.$eval(clickAction);
+            }
+          });
+        }
+      };
+    }
+  ]);
 
 })();
-console.log('File loaded...');
+console.log('App loaded...');
