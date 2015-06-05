@@ -33,7 +33,7 @@ func fwrulesWebAdmin(c *cli.Context) {
 		api.Get("/:fwid/rulesets/:id", apiRuleSetsGet)
 		api.Post("/:fwid/rulesets", binding.Json(RuleSet{}), apiRuleSetsPost)
 		api.Put("/:fwid/rulesets/:id", binding.Json(RuleSet{}), apiRuleSetsPut)
-		api.Delete("/:fwid/rulesets/**", apiRuleSetsDelete)
+		api.Delete("/:fwid/rulesets/:id", apiRuleSetsDelete)
 	})
 
 	// Static pages
@@ -132,9 +132,7 @@ func apiRuleSetsPost(ruleset RuleSet, r render.Render, params martini.Params) {
 }
 
 func apiRuleSetsPut(ruleset RuleSet, r render.Render, params martini.Params) {
-	if params["id"] != ruleset.Name {
-		r.JSON(409, map[string]string{"error": "conflict"})
-	}
+	fmt.Println(ruleset)
 	data, err := json.Marshal(ruleset)
 	if err != nil {
 		r.JSON(500, map[string]string{"error": "cannot marshal data"})
@@ -148,8 +146,8 @@ func apiRuleSetsPut(ruleset RuleSet, r render.Render, params martini.Params) {
 	r.JSON(204, nil)
 }
 
-func apiRuleSetsDelete(ruleset RuleSet, r render.Render, params martini.Params) {
-	err := s.client.Delete(pathRuleSet(params["fwid"], ruleset.Name))
+func apiRuleSetsDelete(r render.Render, params martini.Params) {
+	err := s.client.Delete(pathRuleSet(params["fwid"], params["id"]))
 	if err != nil {
 		r.JSON(500, map[string]string{"error": "could not delete"})
 	}
